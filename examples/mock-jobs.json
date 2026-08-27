@@ -1,0 +1,34 @@
+[
+  {
+    "id": "mock-01",
+    "prompt": "Assemble a cream ground strip, film light, vintage camera and clapperboard from an empty navy paper field.",
+    "output": "out/mock-video/mock-01.mp4",
+    "aspect_ratio": "9:16",
+    "duration": 5,
+    "mock_background": "navy"
+  },
+  {
+    "id": "mock-02",
+    "prompt": "Assemble an office stack, teal silhouette, typewriter, cream paper and red arrow from an empty mustard paper field.",
+    "output": "out/mock-video/mock-02.mp4",
+    "aspect_ratio": "9:16",
+    "duration": 5,
+    "mock_background": "mustard"
+  },
+  {
+    "id": "mock-03",
+    "prompt": "Assemble a cream map, green hills, blue river, red thread and typewriter from an empty burnt-orange paper field.",
+    "output": "out/mock-video/mock-03.mp4",
+    "aspect_ratio": "9:16",
+    "duration": 5,
+    "mock_background": "burnt-orange"
+  },
+  {
+    "id": "mock-04",
+    "prompt": "Assemble ochre fragments, a halftone stone, ancestral tools, ribbon and two hands from an empty forest-green paper field.",
+    "output": "out/mock-video/mock-04.mp4",
+    "aspect_ratio": "9:16",
+    "duration": 5,
+    "mock_background": "forest"
+  }
+]

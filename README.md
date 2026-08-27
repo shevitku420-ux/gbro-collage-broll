@@ -101,6 +101,19 @@ python3 scripts/generate_video.py \\
 
 The active video path remains `gemini-omni-flash-preview`, with audio stripping and frame QA handled by the existing workflow. The planner is an analysis/metadata layer; alpha-layer extraction, compositing, MP4 rendering, and pixel-level last-frame verification remain deterministic post-processing and QA work.
 
+### Local mock run (no Gemini video request)
+
+For a safe smoke test, `generate_video.py` also supports `--mock`. This path uses local `ffmpeg` only, does not upload images, does not create a Gemini Interaction, and does not require `GEMINI_API_KEY`:
+
+```bash
+python3 scripts/generate_video.py \\
+  --batch examples/mock-jobs.json \\
+  --mock \\
+  --concurrency 2
+```
+
+The example writes four 5-second, 720×1280, 24fps, silent MP4 files under `out/mock-video/`. They are deterministic placeholders for checking batch execution, output paths, and media validation; they are not model-generated artwork and must never be used as production deliverables.
+
 ## FAQ
 
 **为什么强制两次人工确认？**
