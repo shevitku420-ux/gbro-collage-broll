@@ -75,6 +75,32 @@ gbro-collage-broll/
     └── generate_veo_first_last.py  # 旧 Veo 链路（仅兼容保留，默认不用）
 ```
 
+## Gemini motion-planning integration
+
+This repository now includes an optional planning stage at `scripts/plan_motion.py`. It uses the Google Gen AI SDK and the `GEMINI_API_KEY` environment variable to turn each approved job prompt into normalized motion-plan JSON: motion groups, layer names, five-second timing, approved curve IDs, and QA blockers. It does **not** render a video and it does not bypass the three approval gates.
+
+The planner deliberately uses `reference-x` and `reference-y` until the real first/last frame files are present. This prevents the model from inventing pixel positions and keeps the exact-last-frame requirement honest. Missing images produce `needs_reference_validation`; only after Gate 2 approval and reference images are available should the existing Omni Flash generator be run.
+
+Example:
+
+```bash
+export GEMINI_API_KEY="YOUR_API_KEY"
+python3 scripts/plan_motion.py \\
+  --jobs omni-jobs.example.json \\
+  --project-root . \\
+  --output-dir out/motion-plans
+```
+
+The command writes one `*.motion-plan.json` per job, plus `manifest.json` and `report.md`. After the stills and references pass approval, create the production batch JSON with the two image paths and run the existing video pipeline:
+
+```bash
+python3 scripts/generate_video.py \\
+  --batch omni-jobs.json \\
+  --concurrency 3
+```
+
+The active video path remains `gemini-omni-flash-preview`, with audio stripping and frame QA handled by the existing workflow. The planner is an analysis/metadata layer; alpha-layer extraction, compositing, MP4 rendering, and pixel-level last-frame verification remain deterministic post-processing and QA work.
+
 ## FAQ
 
 **为什么强制两次人工确认？**

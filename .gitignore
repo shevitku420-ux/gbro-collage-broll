@@ -1,2 +1,9 @@
 __pycache__/
 .DS_Store
+
+# Local generated plans, logs, media, and secrets
+out/
+.env
+.env.*
+__pycache__/
+*.pyc
