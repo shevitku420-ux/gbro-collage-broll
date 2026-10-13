@@ -180,6 +180,68 @@ def download_video_file(file_uri, output_path, api_key):
     except urllib.error.HTTPError as e:
         raise RuntimeError(f"Error downloading video file: {e.code} - {e.read().decode()}")
 
+def _mock_seconds(duration):
+    """Converts the generator's duration value (e.g. 5 or '5s') to seconds."""
+    if duration is None:
+        return 5
+    if isinstance(duration, (int, float)):
+        return int(duration)
+    return int(str(duration).strip().lower().rstrip("s"))
+
+
+def _mock_progress(start, span):
+    """Returns an ffmpeg expression that clamps animation progress to [0, 1]."""
+    return f"min(max((t-{start:.2f})/{span:.2f}\\,0)\\,1)"
+
+
+def generate_mock_video(prompt, output_path, aspect_ratio="9:16", duration=5, background=None):
+    """Creates a deterministic paper-collage-like MP4 without any network/API call."""
+    import subprocess
+
+    seconds = _mock_seconds(duration)
+    width, height = (720, 1280) if aspect_ratio == "9:16" else (1280, 720)
+    prompt_lower = f"{background or ''} {prompt or ''}".lower()
+    palette = {
+        "navy": "14263d",
+        "mustard": "c5a737",
+        "burnt-orange": "bd633e",
+        "burnt orange": "bd633e",
+        "forest": "1f4938",
+        "green": "1f4938",
+    }
+    bg = next((color for name, color in palette.items() if name in prompt_lower), "14263d")
+    p1 = _mock_progress(0.30, 0.80)
+    p2 = _mock_progress(0.98, 0.92)
+    p3 = _mock_progress(2.05, 0.90)
+    p4 = _mock_progress(3.30, 0.70)
+    thread_p = _mock_progress(3.10, 0.65)
+    # The moving shapes deliberately approximate assemble-from-empty timing.
+    filter_graph = ",".join([
+        f"drawbox=x=-0.72*iw+0.82*iw*{p1}:y=0.72*ih:w=0.82*iw:h=0.16*ih:color=0xf4e6c5:t=fill",
+        f"drawbox=x=-0.62*iw+0.78*iw*{p2}:y=0.27*ih:w=0.62*iw:h=0.15*ih:color=0x719b6b:t=fill",
+        f"drawbox=x=-0.38*iw+0.82*iw*{p3}:y=0.42*ih:w=0.28*iw:h=0.30*ih:color=0xe27a48:t=fill",
+        f"drawbox=x=0.51*iw:y=0.38*ih:w=0.035*iw:h=0.30*ih*{thread_p}:color=0xc83f3f:t=fill",
+        f"drawbox=x=-0.42*iw+0.88*iw*{p4}:y=0.57*ih:w=0.48*iw:h=0.22*ih:color=0xf4e6c5:t=fill",
+        f"drawbox=x=-0.34*iw+0.88*iw*{p4}:y=0.57*ih:w=0.48*iw:h=0.04*ih:color=0x222222:t=fill",
+        f"drawbox=x=-0.34*iw+0.88*iw*{p4}:y=0.75*ih:w=0.48*iw:h=0.04*ih:color=0x222222:t=fill",
+        "noise=alls=5:allf=t",
+    ])
+    os.makedirs(os.path.dirname(os.path.abspath(output_path)) or ".", exist_ok=True)
+    command = [
+        "ffmpeg", "-y", "-f", "lavfi",
+        "-i", f"color=c=0x{bg}:s={width}x{height}:r=24:d={seconds}",
+        "-vf", filter_graph,
+        "-t", str(seconds), "-r", "24", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+        "-an", output_path,
+    ]
+    try:
+        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or "").splitlines()[-8:]
+        raise RuntimeError("Mock ffmpeg generation failed: " + " | ".join(detail)) from exc
+    print(f"Mock video successfully saved to: {output_path}")
+
+
 def generate_video(prompt, api_key, model="gemini-omni-flash-preview", aspect_ratio="16:9", duration=None, image_path=None, video_path=None, output_path="output.mp4", strip_audio=False, previous_interaction_id=None):
     """Creates an interaction with the video model and downloads the resulting video using the official google-genai SDK."""
     duration = parse_and_validate_duration(duration)
@@ -287,6 +349,7 @@ def run_job(job, api_key):
     output_path = job.get("output")
     model = job.get("model", "gemini-omni-flash-preview")
     strip_audio = job.get("strip_audio", False)
+    mock = job.get("mock", False)
     previous_interaction_id = job.get("previous_interaction_id")
 
     if not output_path:
@@ -295,18 +358,27 @@ def run_job(job, api_key):
     print(f"[Parallel] Dispatching: '{prompt}' (Output: {output_path})")
     
     try:
-        generate_video(
-            prompt=prompt,
-            api_key=api_key,
-            model=model,
-            aspect_ratio=aspect_ratio,
-            duration=duration,
-            image_path=image_path,
-            video_path=video_path,
-            output_path=output_path,
-            strip_audio=strip_audio,
-            previous_interaction_id=previous_interaction_id
-        )
+        if mock:
+            generate_mock_video(
+                prompt=prompt,
+                output_path=output_path,
+                aspect_ratio=aspect_ratio,
+                duration=duration,
+                background=job.get("mock_background"),
+            )
+        else:
+            generate_video(
+                prompt=prompt,
+                api_key=api_key,
+                model=model,
+                aspect_ratio=aspect_ratio,
+                duration=duration,
+                image_path=image_path,
+                video_path=video_path,
+                output_path=output_path,
+                strip_audio=strip_audio,
+                previous_interaction_id=previous_interaction_id
+            )
         return {"job": job, "status": "SUCCESS", "output_path": output_path}
     except Exception as e:
         print(f"[Parallel] Failed: '{prompt}' - Error: {e}", file=sys.stderr)
@@ -324,6 +396,8 @@ def main():
     parser.add_argument("--strip-audio", "-a", action="store_true", help="Completely strip/disable audio stream from the input video(s) before uploading so Gemini Omni Flash can regenerate new audio from scratch")
     parser.add_argument("--previous-interaction-id", help="Optional Interaction ID of a previous generation for turn-by-turn editing")
     parser.add_argument("--api-key", help="Gemini API Key (overrides env)")
+    parser.add_argument("--mock", action="store_true", help="Generate a local deterministic MP4 with ffmpeg; never calls Gemini")
+    parser.add_argument("--mock-background", help="Background hint for --mock (navy, mustard, burnt-orange, forest)")
     
     # Parallel batch configuration options
     parser.add_argument("--batch", help="Path to a JSON file containing an array of generation jobs")
@@ -333,7 +407,7 @@ def main():
     args = parser.parse_args()
 
     api_key = get_api_key(args)
-    if not api_key:
+    if not api_key and not args.mock:
         print("Error: API key is not set. Use --api-key or set GEMINI_API_KEY environment variable.", file=sys.stderr)
         sys.exit(1)
 
@@ -352,6 +426,11 @@ def main():
             print(f"Error parsing Batch JSON: {e}", file=sys.stderr)
             sys.exit(1)
 
+        if args.mock:
+            for job in jobs:
+                job["mock"] = True
+                if args.mock_background:
+                    job.setdefault("mock_background", args.mock_background)
         print(f"Loaded {len(jobs)} jobs from batch JSON. Running with concurrency={args.concurrency}...")
 
     # 2. Handle Prompts File execution
@@ -385,18 +464,27 @@ def main():
             
         output_path = args.output if args.output else "media/output.mp4"
         try:
-            generate_video(
-                prompt=args.prompt,
-                api_key=api_key,
-                model=args.model,
-                aspect_ratio=args.aspect_ratio,
-                duration=args.duration,
-                image_path=args.image,
-                video_path=args.video,
-                output_path=output_path,
-                strip_audio=args.strip_audio,
-                previous_interaction_id=args.previous_interaction_id
-            )
+            if args.mock:
+                generate_mock_video(
+                    prompt=args.prompt,
+                    output_path=output_path,
+                    aspect_ratio=args.aspect_ratio,
+                    duration=args.duration or 5,
+                    background=args.mock_background,
+                )
+            else:
+                generate_video(
+                    prompt=args.prompt,
+                    api_key=api_key,
+                    model=args.model,
+                    aspect_ratio=args.aspect_ratio,
+                    duration=args.duration,
+                    image_path=args.image,
+                    video_path=args.video,
+                    output_path=output_path,
+                    strip_audio=args.strip_audio,
+                    previous_interaction_id=args.previous_interaction_id
+                )
             sys.exit(0)
         except Exception as e:
             print(f"Error: Generation failed: {e}", file=sys.stderr)

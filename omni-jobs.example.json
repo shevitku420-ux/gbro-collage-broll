@@ -1,0 +1,50 @@
+[
+  {
+    "id": "01-never-on-set",
+    "mode": "short_collage_broll",
+    "prompt": "Paper-collage stop-motion assembly. Use the first supplied image as the exact empty navy paper field and the second supplied image as the exact completed last frame. In one continuous locked-off vertical shot, assemble from empty: first the torn cream ground strip slides in and snaps into place, then the halftone film light and tripod assemble piece by piece, then the vintage camera and tripod lock into position, then the clapperboard slides in last. End by holding the supplied completed composition. Preserve the exact editorial halftone paper collage, navy paper texture, cream keylines, orange cardstock accents, crisp cut edges and soft shadows. No cuts, no camera movement, no zoom, no morphing, no new objects, no readable text, no logos, no watermark, no sound.",
+    "image": [
+      "01-never-on-set/frames/first-frame.png",
+      "01-never-on-set/frames/last-frame-original.png"
+    ],
+    "output": "01-never-on-set/final-5s.mp4",
+    "aspect_ratio": "9:16",
+    "duration": 5
+  },
+  {
+    "id": "02-quit-job",
+    "mode": "short_collage_broll",
+    "prompt": "Paper-collage stop-motion assembly. Use the first supplied image as the exact empty mustard-yellow paper field and the second supplied image as the exact completed last frame. In one continuous locked-off vertical shot, assemble from empty: first the black-and-white office stack and desk collage slides in from the left, then the teal cardstock silhouette and typewriter assemble on the right, then the cream paper and pen lock into place, and finally the bold red arrow snaps upward between the two worlds. End by holding the supplied completed composition. Preserve the exact editorial halftone paper collage, mustard field, teal and red cardstock, cream keylines, crisp cut edges and soft shadows. No cuts, no camera movement, no zoom, no morphing, no new objects, no readable text, no logos, no watermark, no sound.",
+    "image": [
+      "02-quit-job/frames/first-frame.png",
+      "02-quit-job/frames/last-frame-original.png"
+    ],
+    "output": "02-quit-job/final-5s.mp4",
+    "aspect_ratio": "9:16",
+    "duration": 5
+  },
+  {
+    "id": "03-screenplay-hometown",
+    "mode": "short_collage_broll",
+    "prompt": "Paper-collage stop-motion assembly. Use the first supplied image as the exact empty burnt-orange paper field and the second supplied image as the exact completed last frame. In one continuous locked-off vertical shot, assemble from empty: first the irregular cream map-shaped paper slides into the center, then the green hills, village and blue river pieces snap into place, then the cream house and bridge assemble, then the red thread travels down from the map and the vintage typewriter with blank paper locks into place at the bottom. End by holding the supplied completed composition. Preserve the exact editorial halftone paper collage, burnt-orange paper texture, green, blue and red cardstock accents, cream keylines, crisp cut edges and soft shadows. No cuts, no camera movement, no zoom, no morphing, no new objects, no readable text, no logos, no watermark, no sound.",
+    "image": [
+      "03-screenplay-hometown/frames/first-frame.png",
+      "03-screenplay-hometown/frames/last-frame-original.png"
+    ],
+    "output": "03-screenplay-hometown/final-5s.mp4",
+    "aspect_ratio": "9:16",
+    "duration": 5
+  },
+  {
+    "id": "04-ancestors-legacy",
+    "mode": "short_collage_broll",
+    "prompt": "Paper-collage stop-motion assembly. Use the first supplied image as the exact empty deep-forest-green paper field and the second supplied image as the exact completed last frame. In one continuous locked-off vertical shot, assemble from empty: first the torn ochre and rust paper fragments slide in, then the black-and-white halftone stone and bundle of ancestral tools assemble at upper left, then the ribbon threads downward through the center, then the two halftone hands enter from opposite sides and gently hold the ribbon. End by holding the supplied completed composition. Preserve the exact editorial halftone paper collage, deep green paper texture, rust and ochre cardstock accents, cream keylines, crisp cut edges and soft shadows. No cuts, no camera movement, no zoom, no morphing, no new objects, no readable text, no logos, no watermark, no sound.",
+    "image": [
+      "04-ancestors-legacy/frames/first-frame.png",
+      "04-ancestors-legacy/frames/last-frame-original.png"
+    ],
+    "output": "04-ancestors-legacy/final-5s.mp4",
+    "aspect_ratio": "9:16",
+    "duration": 5
+  }
+]
